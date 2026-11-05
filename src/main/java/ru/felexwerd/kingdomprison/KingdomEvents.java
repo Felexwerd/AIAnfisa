@@ -12,6 +12,8 @@ import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.npc.VillagerType;
 import net.minecraft.world.entity.projectile.Egg;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -126,7 +128,7 @@ public final class KingdomEvents {
     }
 
     private static void build(ServerLevel l) {
-        BlockPos s=l.getSharedSpawnPos(); int y=safeY(l,s.getX(),s.getZ());
+        BlockPos s=l.getSharedSpawnPos(); int y=safeY(l,s.getX(),s.getZ()); s=new BlockPos(s.getX(),y,s.getZ());
         // A broad levelled plaza ensures the castle, jail and market share one ground plane.
         for(int x=-25;x<=25;x++) for(int z=-25;z<=25;z++) for(int dy=-3;dy<=12;dy++) {
             BlockPos q=new BlockPos(s.getX()+x,y+dy,s.getZ()+z);
@@ -136,12 +138,12 @@ public final class KingdomEvents {
             else if(!l.getBlockState(q).isAir()) l.setBlock(q,Blocks.AIR.defaultBlockState(),3);
         }
         for(int x=-BORDER;x<=BORDER;x++) for(int z=-BORDER;z<=BORDER;z++) if(Math.abs(x)==BORDER||Math.abs(z)==BORDER) {
-            int gy=safeY(l,s.getX()+x,s.getZ()+z);
+            int gy=y;
             if(Math.abs(x)==BORDER&&Math.abs(z)==BORDER) continue;
             if((x==0&&Math.abs(z)==BORDER)||(z==0&&Math.abs(x)==BORDER))continue;
             for(int h=0;h<5;h++) l.setBlock(new BlockPos(s.getX()+x,gy+h,s.getZ()+z),h==4?Blocks.STONE_BRICK_WALL.defaultBlockState():Blocks.STONE_BRICKS.defaultBlockState(),3);
         }
-        for(int x:new int[]{-BORDER,BORDER})for(int z:new int[]{-BORDER,BORDER}) { int gy=safeY(l,s.getX()+x,s.getZ()+z); for(int h=0;h<9;h++)for(int a=-2;a<=2;a++)for(int b=-2;b<=2;b++)if(Math.abs(a)==2||Math.abs(b)==2)l.setBlock(new BlockPos(s.getX()+x+a,gy+h,s.getZ()+z+b),Blocks.COBBLESTONE.defaultBlockState(),3); }
+        for(int x:new int[]{-BORDER,BORDER})for(int z:new int[]{-BORDER,BORDER}) { int gy=y; for(int h=0;h<9;h++)for(int a=-2;a<=2;a++)for(int b=-2;b<=2;b++)if(Math.abs(a)==2||Math.abs(b)==2)l.setBlock(new BlockPos(s.getX()+x+a,gy+h,s.getZ()+z+b),Blocks.COBBLESTONE.defaultBlockState(),3); }
         building(l,s.offset(-7,0,-12),15,10,15,Blocks.STONE_BRICKS.defaultBlockState(),Blocks.DEEPSLATE_TILES.defaultBlockState());
         building(l,s.offset(13,0,-5),11,6,11,Blocks.COBBLED_DEEPSLATE.defaultBlockState(),Blocks.IRON_BARS.defaultBlockState());
         for(int x=15;x<=21;x++)for(int z=-3;z<=3;z++)if(x==15||x==21||z==-3||z==3)l.setBlock(s.offset(x,1,z),Blocks.IRON_BARS.defaultBlockState(),3);
@@ -158,10 +160,36 @@ public final class KingdomEvents {
         if(king!=null){king.moveTo(s.getX()+.5,s.getY()+1,s.getZ()+2.5,180,0);king.setVillagerData(king.getVillagerData().setType(VillagerType.PLAINS).setProfession(VillagerProfession.CLERIC).setLevel(5));king.setCustomName(Component.literal("§6§lКороль Альдрик"));king.setCustomNameVisible(true);king.setPersistenceRequired();king.getPersistentData().putBoolean("KingdomPrisonKing",true);l.addFreshEntity(king);}
         VillagerProfession[] jobs={VillagerProfession.FARMER,VillagerProfession.LIBRARIAN,VillagerProfession.ARMORER,VillagerProfession.WEAPONSMITH,VillagerProfession.BUTCHER};
         String[] names={"§eФермер","§bКниготорговец","§7Бронник","§cОружейник","§6Мясник"};
-        for(int i=0;i<5;i++){Villager v=EntityType.VILLAGER.create(l);if(v!=null){v.moveTo(s.getX()-16+i*8+.5,s.getY()+1,s.getZ()+17.5,0,0);v.setVillagerData(v.getVillagerData().setProfession(jobs[i]).setLevel(3));v.setCustomName(Component.literal(names[i]));v.setCustomNameVisible(true);v.setPersistenceRequired();l.addFreshEntity(v);}}
+        for(int i=0;i<5;i++){Villager v=EntityType.VILLAGER.create(l);if(v!=null){v.moveTo(s.getX()-16+i*8+.5,s.getY()+1,s.getZ()+17.5,0,0);v.setVillagerData(v.getVillagerData().setProfession(jobs[i]).setLevel(3));v.setCustomName(Component.literal(names[i]));v.setCustomNameVisible(true);v.setPersistenceRequired();\n            addShopOffers(v,i); l.addFreshEntity(v);}}
         for(int i=0;i<4;i++){IronGolem g=EntityType.IRON_GOLEM.create(l);if(g!=null){g.moveTo(s.getX()+(i%2==0?-5:5),s.getY()+1,s.getZ()+(i<2?-8:8),0,0);g.setCustomName(Component.literal("§7Королевская стража"));g.setCustomNameVisible(true);g.setPlayerCreated(true);g.setPersistenceRequired();l.addFreshEntity(g);}}
         for(int i=0;i<4;i++){Villager v=EntityType.VILLAGER.create(l);if(v!=null){v.moveTo(s.getX()+(i-2)*3,s.getY()+1,s.getZ()+22,0,0);v.setCustomName(Component.literal("§fЖитель королевства"));v.setPersistenceRequired();l.addFreshEntity(v);}}
     }
+    private static void addShopOffers(Villager v,int shop) {
+        var offers=v.getOffers();
+        switch(shop) {
+            case 0 -> {
+                offers.add(new MerchantOffer(new ItemStack(Items.EMERALD,1),new ItemStack(Items.BREAD,8),16,8,0.05F));
+                offers.add(new MerchantOffer(new ItemStack(Items.EMERALD,2),new ItemStack(Items.COOKED_BEEF,6),12,10,0.05F));
+            }
+            case 1 -> {
+                offers.add(new MerchantOffer(new ItemStack(Items.EMERALD,3),new ItemStack(Items.BOOK,1),12,12,0.05F));
+                offers.add(new MerchantOffer(new ItemStack(Items.EMERALD,5),new ItemStack(Items.ENCHANTED_BOOK,1),4,20,0.05F));
+            }
+            case 2 -> {
+                offers.add(new MerchantOffer(new ItemStack(Items.EMERALD,7),new ItemStack(Items.IRON_CHESTPLATE,1),8,15,0.05F));
+                offers.add(new MerchantOffer(new ItemStack(Items.EMERALD,4),new ItemStack(Items.IRON_BOOTS,1),8,10,0.05F));
+            }
+            case 3 -> {
+                offers.add(new MerchantOffer(new ItemStack(Items.EMERALD,5),new ItemStack(Items.IRON_SWORD,1),8,12,0.05F));
+                offers.add(new MerchantOffer(new ItemStack(Items.EMERALD,8),new ItemStack(Items.CROSSBOW,1),6,15,0.05F));
+            }
+            default -> {
+                offers.add(new MerchantOffer(new ItemStack(Items.EMERALD,1),new ItemStack(Items.COOKED_PORKCHOP,8),16,8,0.05F));
+                offers.add(new MerchantOffer(new ItemStack(Items.EMERALD,2),new ItemStack(Items.CAKE,1),6,12,0.05F));
+            }
+        }
+    }
+
     private static void building(ServerLevel l,BlockPos o,int w,int h,int d,BlockState wall,BlockState roof) {
         for(int x=0;x<w;x++)for(int z=0;z<d;z++){l.setBlock(o.offset(x,0,z),Blocks.STONE_BRICKS.defaultBlockState(),3);for(int y=1;y<h;y++){boolean edge=x==0||z==0||x==w-1||z==d-1;l.setBlock(o.offset(x,y,z),edge?wall:(y==h-1?roof:Blocks.AIR.defaultBlockState()),3);}l.setBlock(o.offset(x,h,z),roof,3);}
         l.setBlock(o.offset(w/2,1,0),Blocks.AIR.defaultBlockState(),3);l.setBlock(o.offset(w/2,2,0),Blocks.AIR.defaultBlockState(),3);
