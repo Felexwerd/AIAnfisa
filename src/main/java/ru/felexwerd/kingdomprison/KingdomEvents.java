@@ -17,7 +17,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;\nimport net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -55,7 +55,7 @@ public final class KingdomEvents {
         leave.put(id,LEAVE_SECONDS);
     }
 
-    @SubscribeEvent public static void breakBlock(BlockEvent.BreakEvent e) {
+    @SubscribeEvent public static void attacked(AttackEntityEvent e) {\n        if (!(e.getEntity() instanceof ServerPlayer p) || p.level().isClientSide) return;\n        Entity target=e.getTarget();\n        if ((target instanceof Villager v && v.getPersistentData().getBoolean("KingdomPrisonKing")) || target instanceof IronGolem) {\n            e.setCanceled(true); punishment.put(p.getUUID(),PUNISH_SECONDS);\n            p.sendSystemMessage(Component.literal("§cКоролевская стража схватила тебя за нападение! Начинается публичное наказание яйцами — 2 минуты."));\n            BlockPos s=p.serverLevel().getSharedSpawnPos(); p.teleportTo(s.getX()+.5,safeY(p.serverLevel(),s.getX(),s.getZ()),s.getZ()+.5);\n        }\n    }\n\n    @SubscribeEvent public static void breakBlock(BlockEvent.BreakEvent e) {
         if (!(e.getPlayer() instanceof ServerPlayer p) || p.level().isClientSide) return;
         BlockPos s=p.serverLevel().getSharedSpawnPos(), b=e.getPos();
         if (inside(b,s.offset(13,0,-5),11,8,11) &&
