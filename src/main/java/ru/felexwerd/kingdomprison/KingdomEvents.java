@@ -19,7 +19,8 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;\nimport net.minecraftforge.event.entity.player.AttackEntityEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -57,7 +58,17 @@ public final class KingdomEvents {
         leave.put(id,LEAVE_SECONDS);
     }
 
-    @SubscribeEvent public static void attacked(AttackEntityEvent e) {\n        if (!(e.getEntity() instanceof ServerPlayer p) || p.level().isClientSide) return;\n        Entity target=e.getTarget();\n        if ((target instanceof Villager v && v.getPersistentData().getBoolean("KingdomPrisonKing")) || target instanceof IronGolem) {\n            e.setCanceled(true); punishment.put(p.getUUID(),PUNISH_SECONDS);\n            p.sendSystemMessage(Component.literal("§cКоролевская стража схватила тебя за нападение! Начинается публичное наказание яйцами — 2 минуты."));\n            BlockPos s=p.serverLevel().getSharedSpawnPos(); p.teleportTo(s.getX()+.5,safeY(p.serverLevel(),s.getX(),s.getZ()),s.getZ()+.5);\n        }\n    }\n\n    @SubscribeEvent public static void breakBlock(BlockEvent.BreakEvent e) {
+    @SubscribeEvent public static void attacked(AttackEntityEvent e) {
+        if (!(e.getEntity() instanceof ServerPlayer p) || p.level().isClientSide) return;
+        Entity target=e.getTarget();
+        if ((target instanceof Villager v && v.getPersistentData().getBoolean("KingdomPrisonKing")) || target instanceof IronGolem) {
+            e.setCanceled(true); punishment.put(p.getUUID(),PUNISH_SECONDS);
+            p.sendSystemMessage(Component.literal("§cКоролевская стража схватила тебя за нападение! Начинается публичное наказание яйцами — 2 минуты."));
+            BlockPos s=p.serverLevel().getSharedSpawnPos(); p.teleportTo(s.getX()+.5,safeY(p.serverLevel(),s.getX(),s.getZ()),s.getZ()+.5);
+        }
+    }
+
+    @SubscribeEvent public static void breakBlock(BlockEvent.BreakEvent e) {
         if (!(e.getPlayer() instanceof ServerPlayer p) || p.level().isClientSide) return;
         BlockPos s=p.serverLevel().getSharedSpawnPos(), b=e.getPos();
         if (inside(b,s.offset(13,0,-5),11,8,11) &&
@@ -160,7 +171,8 @@ public final class KingdomEvents {
         if(king!=null){king.moveTo(s.getX()+.5,s.getY()+1,s.getZ()+2.5,180,0);king.setVillagerData(king.getVillagerData().setType(VillagerType.PLAINS).setProfession(VillagerProfession.CLERIC).setLevel(5));king.setCustomName(Component.literal("§6§lКороль Альдрик"));king.setCustomNameVisible(true);king.setPersistenceRequired();king.getPersistentData().putBoolean("KingdomPrisonKing",true);l.addFreshEntity(king);}
         VillagerProfession[] jobs={VillagerProfession.FARMER,VillagerProfession.LIBRARIAN,VillagerProfession.ARMORER,VillagerProfession.WEAPONSMITH,VillagerProfession.BUTCHER};
         String[] names={"§eФермер","§bКниготорговец","§7Бронник","§cОружейник","§6Мясник"};
-        for(int i=0;i<5;i++){Villager v=EntityType.VILLAGER.create(l);if(v!=null){v.moveTo(s.getX()-16+i*8+.5,s.getY()+1,s.getZ()+17.5,0,0);v.setVillagerData(v.getVillagerData().setProfession(jobs[i]).setLevel(3));v.setCustomName(Component.literal(names[i]));v.setCustomNameVisible(true);v.setPersistenceRequired();\n            addShopOffers(v,i); l.addFreshEntity(v);}}
+        for(int i=0;i<5;i++){Villager v=EntityType.VILLAGER.create(l);if(v!=null){v.moveTo(s.getX()-16+i*8+.5,s.getY()+1,s.getZ()+17.5,0,0);v.setVillagerData(v.getVillagerData().setProfession(jobs[i]).setLevel(3));v.setCustomName(Component.literal(names[i]));v.setCustomNameVisible(true);v.setPersistenceRequired();
+            addShopOffers(v,i); l.addFreshEntity(v);}}
         for(int i=0;i<4;i++){IronGolem g=EntityType.IRON_GOLEM.create(l);if(g!=null){g.moveTo(s.getX()+(i%2==0?-5:5),s.getY()+1,s.getZ()+(i<2?-8:8),0,0);g.setCustomName(Component.literal("§7Королевская стража"));g.setCustomNameVisible(true);g.setPlayerCreated(true);g.setPersistenceRequired();l.addFreshEntity(g);}}
         for(int i=0;i<4;i++){Villager v=EntityType.VILLAGER.create(l);if(v!=null){v.moveTo(s.getX()+(i-2)*3,s.getY()+1,s.getZ()+22,0,0);v.setCustomName(Component.literal("§fЖитель королевства"));v.setPersistenceRequired();l.addFreshEntity(v);}}
     }
