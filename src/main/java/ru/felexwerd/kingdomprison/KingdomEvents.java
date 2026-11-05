@@ -11,7 +11,7 @@ import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.npc.VillagerType;
-import net.minecraft.world.entity.projectile.Egg;
+import net.minecraft.world.entity.projectile.ThrownEgg;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.item.Items;
@@ -125,7 +125,7 @@ public final class KingdomEvents {
         jail.put(p.getUUID(),JAIL_SECONDS);
     }
     private static void egg(ServerPlayer p) {
-        Egg egg=new Egg(p.serverLevel(),p);
+        ThrownEgg egg=new ThrownEgg(p.serverLevel(),p);
         egg.setPos(p.getX()+(p.serverLevel().random.nextDouble()-.5)*5,p.getY()+2.5,p.getZ()+(p.serverLevel().random.nextDouble()-.5)*5);
         egg.shoot(p.getX()-egg.getX(),.15,p.getZ()-egg.getZ(),.8F,8F); p.serverLevel().addFreshEntity(egg);
     }
